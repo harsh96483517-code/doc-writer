@@ -31,11 +31,39 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _openEditor([Doc? doc]) async {
+  Future<void> _openEditor([Doc? doc, DocTemplate template = DocTemplate.plain]) async {
     await Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => EditorScreen(doc: doc)),
+      MaterialPageRoute<void>(
+        builder: (_) => EditorScreen(doc: doc, template: template),
+      ),
     );
     _load();
+  }
+
+  Future<void> _newDocument() async {
+    final DocTemplate? choice = await showModalBottomSheet<DocTemplate>(
+      context: context,
+      builder: (BuildContext ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ListTile(
+              leading: const Icon(Icons.description_outlined),
+              title: const Text('Blank document'),
+              onTap: () => Navigator.pop(ctx, DocTemplate.plain),
+            ),
+            ListTile(
+              leading: const Icon(Icons.mail_outline),
+              title: const Text('Letter'),
+              onTap: () => Navigator.pop(ctx, DocTemplate.letter),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (choice != null) {
+      await _openEditor(null, choice);
+    }
   }
 
   Future<void> _confirmDelete(Doc doc) async {
@@ -75,17 +103,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (BuildContext context, int i) {
                     final Doc doc = _docs[i];
-                    final String preview =
-                        doc.body.trim().replaceAll('\n', ' ');
+                    final String preview = doc.body.trim().replaceAll('\n', ' ');
                     return ListTile(
-                      leading: const Icon(Icons.description_outlined),
+                      leading: Icon(
+                        doc.isLetter ? Icons.mail_outline : Icons.description_outlined,
+                      ),
                       title: Text(doc.displayTitle),
                       subtitle: Text(
-                        preview.isEmpty ? 'Empty document' : preview,
+                        preview.isEmpty ? 'Empty' : preview,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      onTap: () => _openEditor(doc),
+                      onTap: () => _openEditor(doc, doc.template),
                       trailing: IconButton(
                         tooltip: 'Delete',
                         icon: const Icon(Icons.delete_outline),
@@ -95,8 +124,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openEditor(),
-        icon: const Icon(Icons.edit),
+        onPressed: _newDocument,
+        icon: const Icon(Icons.add),
         label: const Text('New'),
       ),
     );
@@ -112,7 +141,7 @@ class _EmptyState extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.all(24),
         child: Text(
-          'No documents yet.\nTap "New" to write one.',
+          'No documents yet.\nTap "New" to write a document or a letter.',
           textAlign: TextAlign.center,
         ),
       ),

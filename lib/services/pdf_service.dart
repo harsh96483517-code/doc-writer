@@ -65,7 +65,7 @@ class PdfService {
   void _addLetterPage(pw.Document pdf, Doc doc, pw.ThemeData theme) {
     final String dateText = _formatDate(doc.updatedAt);
     const pw.TextStyle body = pw.TextStyle(fontSize: 12, lineSpacing: 2);
-    final pw.TextStyle bold =
+    const pw.TextStyle bold =
         pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold);
 
     pdf.addPage(

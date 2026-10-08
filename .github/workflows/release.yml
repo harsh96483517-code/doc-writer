@@ -20,6 +20,8 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+      - name: Generate Android platform files
+        run: flutter create --platforms=android --project-name doc_writer .
       - run: flutter pub get
       - run: flutter build apk --release
       - name: Upload APK artifact

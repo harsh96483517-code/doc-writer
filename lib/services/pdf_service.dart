@@ -15,6 +15,11 @@ import '../models/doc.dart';
 class PdfService {
   pw.ThemeData? _theme;
 
+  /// Fallback fonts for *bold* text, Devanagari Bold first. A style's
+  /// `fontFallback` is one list used for every weight, so without this bold
+  /// Hindi would resolve to the Regular Devanagari font in the theme list.
+  List<pw.Font> _boldFallback = <pw.Font>[];
+
   Future<pw.ThemeData> _loadTheme() async {
     if (_theme != null) return _theme!;
     final pw.Font latin =
@@ -26,10 +31,11 @@ class PdfService {
     final pw.Font devanagariBold = pw.Font
         .ttf(await rootBundle.load('assets/fonts/NotoSansDevanagari-Bold.ttf'));
 
+    _boldFallback = <pw.Font>[devanagariBold, devanagari];
     _theme = pw.ThemeData.withFont(
       base: latin,
       bold: latinBold,
-      fontFallback: <pw.Font>[devanagari, devanagariBold],
+      fontFallback: <pw.Font>[devanagari],
     );
     return _theme!;
   }
@@ -65,8 +71,11 @@ class PdfService {
   void _addLetterPage(pw.Document pdf, Doc doc, pw.ThemeData theme) {
     final String dateText = doc.letterDate;
     const pw.TextStyle body = pw.TextStyle(fontSize: 12, lineSpacing: 2);
-    const pw.TextStyle bold =
-        pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold);
+    final pw.TextStyle bold = pw.TextStyle(
+      fontSize: 12,
+      fontWeight: pw.FontWeight.bold,
+      fontFallback: _boldFallback,
+    );
 
     pdf.addPage(
       pw.MultiPage(

@@ -31,6 +31,7 @@ class _EditorScreenState extends State<EditorScreen> {
   // Letter-only fields.
   final TextEditingController _senderName = TextEditingController();
   final TextEditingController _senderAddress = TextEditingController();
+  final TextEditingController _date = TextEditingController();
   final TextEditingController _recipientName = TextEditingController();
   final TextEditingController _recipientAddress = TextEditingController();
   final TextEditingController _subject = TextEditingController();
@@ -45,6 +46,7 @@ class _EditorScreenState extends State<EditorScreen> {
         Doc(
           id: DateTime.now().microsecondsSinceEpoch.toString(),
           template: widget.template,
+          date: newLetter ? formatLetterDate(DateTime.now()) : '',
           salutation: newLetter ? 'Dear Sir/Madam,' : '',
           closing: newLetter ? 'Yours sincerely,' : '',
           updatedAt: DateTime.now(),
@@ -54,6 +56,9 @@ class _EditorScreenState extends State<EditorScreen> {
     _body.text = _doc.body;
     _senderName.text = _doc.senderName;
     _senderAddress.text = _doc.senderAddress;
+    // Letters saved before the date field existed show their last-saved date,
+    // so what is on screen is exactly what will be printed.
+    _date.text = _doc.isLetter ? _doc.letterDate : '';
     _recipientName.text = _doc.recipientName;
     _recipientAddress.text = _doc.recipientAddress;
     _subject.text = _doc.subject;
@@ -67,6 +72,7 @@ class _EditorScreenState extends State<EditorScreen> {
     _body.dispose();
     _senderName.dispose();
     _senderAddress.dispose();
+    _date.dispose();
     _recipientName.dispose();
     _recipientAddress.dispose();
     _subject.dispose();
@@ -81,6 +87,7 @@ class _EditorScreenState extends State<EditorScreen> {
       ..body = _body.text
       ..senderName = _senderName.text
       ..senderAddress = _senderAddress.text
+      ..date = _date.text
       ..recipientName = _recipientName.text
       ..recipientAddress = _recipientAddress.text
       ..subject = _subject.text
@@ -200,6 +207,7 @@ class _EditorScreenState extends State<EditorScreen> {
       children: <Widget>[
         _field(_senderName, 'Your name'),
         _field(_senderAddress, 'Your address', lines: 2),
+        _field(_date, 'Date', hint: '8 October 2026'),
         _field(_recipientName, 'Recipient name'),
         _field(_recipientAddress, 'Recipient address', lines: 2),
         _field(_subject, 'Subject'),

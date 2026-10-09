@@ -63,7 +63,7 @@ class PdfService {
   }
 
   void _addLetterPage(pw.Document pdf, Doc doc, pw.ThemeData theme) {
-    final String dateText = _formatDate(doc.updatedAt);
+    final String dateText = doc.letterDate;
     const pw.TextStyle body = pw.TextStyle(fontSize: 12, lineSpacing: 2);
     const pw.TextStyle bold =
         pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold);
@@ -120,14 +120,6 @@ class PdfService {
           ),
         ],
       );
-
-  String _formatDate(DateTime date) {
-    const List<String> months = <String>[
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
-  }
 
   /// Opens the system print dialog.
   Future<void> printDoc(Doc doc) async {

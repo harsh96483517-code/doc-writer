@@ -38,6 +38,13 @@ class _EditorScreenState extends State<EditorScreen> {
   final TextEditingController _salutation = TextEditingController();
   final TextEditingController _closing = TextEditingController();
 
+  // The text of every field as of the last save (or load). Comparing against it
+  // tells us whether leaving the screen would lose anything.
+  late String _savedSnapshot;
+  late final Listenable _fields;
+  bool _dirty = false;
+  bool _leaving = false;
+
   @override
   void initState() {
     super.initState();
@@ -64,10 +71,48 @@ class _EditorScreenState extends State<EditorScreen> {
     _subject.text = _doc.subject;
     _salutation.text = _doc.salutation;
     _closing.text = _doc.closing;
+
+    // Start watching only after the initial text is in place.
+    _savedSnapshot = _snapshot();
+    _fields = Listenable.merge(<Listenable>[
+      _title,
+      _body,
+      _senderName,
+      _senderAddress,
+      _date,
+      _recipientName,
+      _recipientAddress,
+      _subject,
+      _salutation,
+      _closing,
+    ])
+      ..addListener(_checkDirty);
+  }
+
+  String _snapshot() => <String>[
+        _title.text,
+        _body.text,
+        _senderName.text,
+        _senderAddress.text,
+        _date.text,
+        _recipientName.text,
+        _recipientAddress.text,
+        _subject.text,
+        _salutation.text,
+        _closing.text,
+      ].join('\u0000');
+
+  /// Rebuilds only when "has unsaved changes" flips, not on every keystroke.
+  void _checkDirty() {
+    final bool dirty = _snapshot() != _savedSnapshot;
+    if (dirty != _dirty) {
+      setState(() => _dirty = dirty);
+    }
   }
 
   @override
   void dispose() {
+    _fields.removeListener(_checkDirty);
     _title.dispose();
     _body.dispose();
     _senderName.dispose();
@@ -82,6 +127,7 @@ class _EditorScreenState extends State<EditorScreen> {
   }
 
   Future<void> _persist() async {
+    final String snapshot = _snapshot();
     _doc
       ..title = _title.text
       ..body = _body.text
@@ -95,6 +141,27 @@ class _EditorScreenState extends State<EditorScreen> {
       ..closing = _closing.text
       ..updatedAt = DateTime.now();
     await _storage.save(_doc);
+    _savedSnapshot = snapshot;
+    if (mounted) _checkDirty();
+  }
+
+  /// Back was pressed with unsaved edits: save first, then leave. The home
+  /// list reloads as soon as this screen pops, so the write has to finish
+  /// before that happens. If saving fails we stay, so nothing is lost.
+  Future<void> _saveAndLeave() async {
+    if (_leaving) return;
+    _leaving = true;
+    try {
+      await _persist();
+    } catch (_) {
+      _leaving = false;
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not save. Your changes are still here.')),
+      );
+      return;
+    }
+    if (mounted) Navigator.of(context).pop();
   }
 
   Future<void> _save() async {
@@ -117,6 +184,18 @@ class _EditorScreenState extends State<EditorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return PopScope(
+      // Clean screens pop normally (including the iOS swipe-back gesture); with
+      // unsaved edits the pop is intercepted so they can be saved first.
+      canPop: !_dirty,
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        if (!didPop) _saveAndLeave();
+      },
+      child: _buildScaffold(),
+    );
+  }
+
+  Widget _buildScaffold() {
     return Scaffold(
       appBar: AppBar(
         title: Text(_doc.displayTitle),

@@ -1,10 +1,10 @@
 name: doc_writer
 description: A Flutter mobile app to write a document or letter, then print or save it as a PDF. Supports Hindi / Devanagari text.
 publish_to: 'none'
-version: 1.1.0+2
+version: 1.2.0+3
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.4.0 <4.0.0'
 
 dependencies:
   flutter:

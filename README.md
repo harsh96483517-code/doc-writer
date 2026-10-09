@@ -12,14 +12,16 @@ as a PDF**. Documents can be written in **Hindi (Devanagari)** as well as Englis
 - **Print** — sends the document straight to the system print dialog.
 - **Save / Share PDF** — generates a PDF and opens the native share sheet
   (Save to Files, Google Drive, email, WhatsApp, and so on).
-- Documents are stored on the device and can be reopened or deleted.
+- Documents are stored on the device and can be reopened or deleted. Edits are
+  saved automatically when you leave the editor.
 
 ## The letter template
 
 A letter has dedicated fields, laid out as a formal letter in the PDF:
 
 - Your name and address (top)
-- Date (right-aligned, filled automatically)
+- Date (right-aligned; new letters start with today's date and you can edit it,
+  and it stays the same when you save or print again later)
 - Recipient name and address
 - Subject
 - Salutation (defaults to "Dear Sir/Madam,")
